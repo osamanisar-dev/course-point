@@ -42,11 +42,21 @@
                 border-left: none !important;
             }
         }
+        .custom-img {
+            width: 63%;
+            height: auto;
+            display: block;
+            margin: 0;
+            padding: 0;
+        }
+        .card-body > .row {
+            align-items: center;
+            gap: 0;
+        }
     </style>
 </head>
 <body>
 
-{{--<div style="background-color: #eee;">--}}
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
     <div class="container-fluid navbar-container">
@@ -84,11 +94,11 @@
                 <div class="card shadow-0 border rounded-3">
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-12 col-lg-3 col-xl-3 mb-4 mb-lg-0">
-                                <div class="bg-image hover-zoom ripple rounded ripple-surface">
+                            <div class="col-md-3 d-flex align-items-center justify-content-center p-0">
+                            <div class="bg-image hover-zoom ripple rounded ripple-surface">
                                     <img
-                                        src="https://mdbcdn.b-cdn.net/img/Photos/Horizontal/E-commerce/Products/img%20(4).webp"
-                                        class="w-100"/>
+                                        src="{{ asset('images/img.jpeg') }}"
+                                        class="custom-img" />
                                     <a href="#!">
                                         <div class="hover-overlay">
                                             <div class="mask"
@@ -98,47 +108,22 @@
                                 </div>
                             </div>
                             <div class="col-md-6 col-lg-6 col-xl-6">
-                                <h5>Quant trident shirts</h5>
-                                <div class="d-flex flex-row">
-                                    <div class="text-danger mb-1 me-2">
-                                        <i class="fa fa-star"></i>
-                                        <i class="fa fa-star"></i>
-                                        <i class="fa fa-star"></i>
-                                        <i class="fa fa-star"></i>
-                                    </div>
-                                    <span>310</span>
-                                </div>
-                                <div class="mt-1 mb-0 text-muted small">
-                                    <span>100% cotton</span>
-                                    <span class="text-primary"> • </span>
-                                    <span>Light weight</span>
-                                    <span class="text-primary"> • </span>
-                                    <span>Best finish<br/></span>
-                                </div>
-                                <div class="mb-2 text-muted small">
-                                    <span>Unique design</span>
-                                    <span class="text-primary"> • </span>
-                                    <span>For men</span>
-                                    <span class="text-primary"> • </span>
-                                    <span>Casual<br/></span>
-                                </div>
-                                <p class="description text-truncate mb-4 mb-md-0">
-                                    There are many variations of passages of Lorem Ipsum available, but the
-                                    majority have suffered alteration in some form, by injected humour, or
-                                    randomised words which don't look even slightly believable.
+                                <h5>The ICT Bible</h5>
+                                <p class="description mb-4 mb-md-0">
+                                    This eBook is a beginner-to-advanced guide on ICT and Smart Money Concepts (SMC) used in trading. It breaks down complex market structure, liquidity, and institutional trading ideas into easy-to-understand explanations, helping you build a strong foundation for smarter, more strategic trading decisions.
                                 </p>
                             </div>
                             <div class="col-md-6 col-lg-3 col-xl-3 border-sm-start-none border-start">
                                 <div class="d-flex flex-row align-items-center mb-1">
-                                    <h4 class="mb-1 me-1">$13.99</h4>
-                                    <span class="text-danger"><s>$20.99</s></span>
+                                    <h4 class="mb-1 me-1">$11.99</h4>
                                 </div>
                                 <div class="d-flex flex-column mt-4">
-                                    <button class="btn btn-primary btn-sm toggle-description" type="button">Details</button>
 
-                                    <button class="btn btn-outline-primary btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#stripePaymentModal">
-                                        Buy Now
-                                    </button>
+                                    @if(auth()->user()->buy_bible === 0)
+                                        <a href="{{route('stripe.checkout')}}" class="btn btn-outline-primary btn-sm mt-2">Buy Now</a>
+                                    @else
+                                        <a href="{{route('download.bible')}}" class="btn btn-outline-primary btn-sm mt-2">Download</a>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -207,86 +192,6 @@
     toastr.error("{{ $errors->first() }}");
     @endif
 
-    document.querySelectorAll('.toggle-description').forEach(function(button) {
-        button.addEventListener('click', function() {
-            const description = this.closest('.row').querySelector('.description');
-            description.classList.toggle('text-truncate');
-
-            // Optionally change button text
-            if (description.classList.contains('text-truncate')) {
-                this.textContent = 'Details';
-            } else {
-                this.textContent = 'Show less';
-            }
-        });
-    });
-
-    const stripe = Stripe("{{ config('services.stripe.stripe_key') }}");
-    const elements = stripe.elements();
-    const cardElement = elements.create('card');
-    cardElement.mount('#card-element');
-
-    const form = document.getElementById('payment-form');
-    const cardButton = document.getElementById('card-button');
-    const cardHolderName = document.getElementById('cardholder-name');
-    const errorDiv = document.getElementById('payment-error');
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        cardButton.disabled = true;
-        errorDiv.classList.add('d-none');
-
-        {{--const {clientSecret, error: backendError} = await fetch("{{ route('create.payment.intent') }}", {--}}
-        {{--    method: "POST",--}}
-        {{--    headers: {--}}
-        {{--        "Content-Type": "application/json",--}}
-        {{--        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content')--}}
-        {{--    },--}}
-        {{--    body: JSON.stringify({})--}}
-        {{--}).then(r => r.json());--}}
-
-        const formData = new FormData();
-        formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
-
-        const response = await fetch("{{ route('create.payment.intent') }}", {
-            method: "POST",
-            body: formData
-        });
-
-        const { clientSecret, error: backendError } = await response.json();
-
-
-        if (backendError) {
-            errorDiv.textContent = backendError;
-            errorDiv.classList.remove('d-none');
-            cardButton.disabled = false;
-            return;
-        }
-
-        const {error, paymentIntent} = await stripe.confirmCardPayment(clientSecret, {
-            payment_method: {
-                card: cardElement,
-                billing_details: {
-                    name: cardHolderName.value
-                }
-            }
-        });
-
-        if (error) {
-            errorDiv.textContent = error.message;
-            errorDiv.classList.remove('d-none');
-            cardButton.disabled = false;
-        } else if (paymentIntent.status === 'succeeded') {
-            fetch("{{ route('payment.success') }}")
-                .then(() => {
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('stripePaymentModal'));
-                    modal.hide();
-                    window.location.href = "{{ route('dashboard') }}";
-                });
-        }
-    });
 </script>
-
-
 </body>
 </html>
